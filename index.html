@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Library - Audiobooks & eBooks</title>
+    <title>Аудіо Книги</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Add these links for PWA support -->
     <link rel="manifest" href="manifest.json">
@@ -296,6 +296,49 @@
             color: #f39c12;
         }
         
+        /* Text Reader Styles */
+        .text-content {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #2c3e50;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .text-content p {
+            margin-bottom: 15px;
+        }
+        
+        .text-content h2, .text-content h3 {
+            color: #3498db;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        /* Scrollbar styling for text content */
+        .text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .text-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .text-content::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 10px;
+        }
+        
+        .text-content::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+        
         /* Hidden class */
         .hidden {
             display: none;
@@ -329,7 +372,7 @@
     </style>
 </head>
 <body>
-    <h1>Digital Library</h1>
+    <h1>Аудіо Книги</h1>
     
     <!-- Book Selector -->
     <div class="book-selector" id="bookSelector">
@@ -400,9 +443,51 @@
                 <button id="backToLibrary" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
                     <i class="fas fa-arrow-left"></i> Back to Library
                 </button>
-                <button id="downloadBook" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
-                    <i class="fas fa-download"></i> Download for Offline
+                <div style="display: flex; gap: 10px;">
+                    <button id="switchToText" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
+                        <i class="fas fa-book-open"></i> Read Text
+                    </button>
+                    <button id="downloadBook" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
+                        <i class="fas fa-download"></i> Download for Offline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Text Reader -->
+    <div class="player-container hidden" id="textReaderContainer">
+        <div class="book-cover" id="textBookCover">
+            <span>Text Reader</span>
+        </div>
+        
+        <div class="controls">
+            <div class="chapter-selector">
+                <button id="prevTextChapter" class="control-btn"><i class="fas fa-step-backward"></i></button>
+                <select id="textChapterSelect">
+                    <option value="">Loading chapters...</option>
+                </select>
+                <button id="nextTextChapter" class="control-btn"><i class="fas fa-step-forward"></i></button>
+            </div>
+            
+            <!-- Text content area -->
+            <div class="text-content" id="textContent">
+                <p>Loading text content...</p>
+            </div>
+            
+            <!-- Text reader controls -->
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button id="backToLibraryFromText" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
+                    <i class="fas fa-arrow-left"></i> Back to Library
                 </button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="switchToAudio" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
+                        <i class="fas fa-headphones"></i> Listen Audio
+                    </button>
+                    <button id="downloadTextBook" class="control-btn" style="width: auto; padding: 10px 20px; border-radius: 25px;">
+                        <i class="fas fa-download"></i> Download Text
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -410,7 +495,7 @@
     <audio id="audioPlayer"></audio>
     
     <div class="footer">
-        <p>Digital Library - Books & Audiobooks</p>
+        <p>Аудіо Книги - Бібліотека аудіокниг</p>
         <div id="selectedBookInfo"></div>
     </div>
     
@@ -427,6 +512,7 @@
             // DOM Elements
             const bookSelector = document.getElementById('bookSelector');
             const playerContainer = document.getElementById('playerContainer');
+            const textReaderContainer = document.getElementById('textReaderContainer');
             const bookGrid = document.getElementById('bookGrid');
             const audioPlayer = document.getElementById('audioPlayer');
             const playPauseBtn = document.getElementById('playPause');
@@ -447,6 +533,17 @@
             const downloadStatus = document.getElementById('downloadStatus');
             const downloadPercent = document.getElementById('downloadPercent');
             const offlineStatus = document.getElementById('offlineStatus');
+            
+            // Text reader elements
+            const switchToText = document.getElementById('switchToText');
+            const switchToAudio = document.getElementById('switchToAudio');
+            const textContent = document.getElementById('textContent');
+            const textChapterSelect = document.getElementById('textChapterSelect');
+            const prevTextChapter = document.getElementById('prevTextChapter');
+            const nextTextChapter = document.getElementById('nextTextChapter');
+            const backToLibraryFromText = document.getElementById('backToLibraryFromText');
+            const downloadTextBook = document.getElementById('downloadTextBook');
+            const textBookCover = document.getElementById('textBookCover');
             
             // Load books configuration
             async function loadBooksConfig() {
@@ -632,6 +729,116 @@
                     downloadBtn.disabled = false;
                     downloadBtn.style.backgroundColor = '#3498db';
                 }
+                
+                // Update switch to text button visibility
+                if (currentBook && currentBook.hasText) {
+                    switchToText.style.display = 'block';
+                } else {
+                    switchToText.style.display = 'none';
+                }
+            }
+            
+            // Switch to text reader mode
+            function switchToTextMode() {
+                if (!currentBook || !currentBook.hasText) return;
+                
+                // Hide audio player, show text reader
+                playerContainer.classList.add('hidden');
+                textReaderContainer.classList.remove('hidden');
+                
+                // Pause audio
+                audioPlayer.pause();
+                isPlaying = false;
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                
+                // Load text content
+                loadTextReader();
+            }
+            
+            // Switch to audio player mode
+            function switchToAudioMode() {
+                if (!currentBook) return;
+                
+                // Hide text reader, show audio player
+                textReaderContainer.classList.add('hidden');
+                playerContainer.classList.remove('hidden');
+            }
+            
+            // Load text reader
+            function loadTextReader() {
+                if (!currentBook) return;
+                
+                // Update book cover
+                textBookCover.style.backgroundImage = `url('${currentBook.audioPath}/../${currentBook.cover}')`;
+                textBookCover.innerHTML = `<span>${currentBook.titleUkrainian || currentBook.title}</span>`;
+                
+                // Load text chapters
+                loadTextChapters();
+                
+                // Load first chapter text
+                loadTextChapter(currentChapterIndex);
+            }
+            
+            // Load text chapters into selector
+            function loadTextChapters() {
+                textChapterSelect.innerHTML = '';
+                if (!currentBook) return;
+                
+                currentBook.chapters.forEach((chapter, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${chapter.number}. ${chapter.title}`;
+                    textChapterSelect.appendChild(option);
+                });
+            }
+            
+            // Load text content for a chapter
+            async function loadTextChapter(index) {
+                if (!currentBook || index < 0 || index >= currentBook.chapters.length) return;
+                
+                currentChapterIndex = index;
+                textChapterSelect.value = index;
+                
+                const chapter = currentBook.chapters[index];
+                
+                try {
+                    // Try to load text file for the chapter
+                    const textPath = `${currentBook.textPath}/${chapter.folder}.txt`;
+                    const response = await fetch(textPath);
+                    
+                    if (response.ok) {
+                        const textData = await response.text();
+                        displayTextContent(textData, chapter);
+                    } else {
+                        // Fallback: show chapter title and basic info
+                        displayTextContent(`${chapter.title}\n\nТекстова версія цієї глави поки недоступна. Будь ласка, скористайтеся аудіоверсією.`, chapter);
+                    }
+                } catch (error) {
+                    console.error('Error loading text chapter:', error);
+                    displayTextContent(`${chapter.title}\n\nПомилка завантаження тексту. Будь ласка, перевірте підключення до Інтернету.`, chapter);
+                }
+                
+                // Update button states
+                prevTextChapter.disabled = currentChapterIndex === 0;
+                nextTextChapter.disabled = currentChapterIndex === currentBook.chapters.length - 1;
+            }
+            
+            // Display text content
+            function displayTextContent(textData, chapter) {
+                const formattedText = textData
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => `<p>${line}</p>`)
+                    .join('');
+                
+                textContent.innerHTML = `
+                    <h2>${chapter.number}. ${chapter.title}</h2>
+                    ${formattedText}
+                `;
+                
+                // Scroll to top
+                textContent.scrollTop = 0;
             }
             
             // Download book for offline use
@@ -850,6 +1057,32 @@
             
             downloadBook.addEventListener('click', downloadBookForOffline);
             
+            // Text reader event listeners
+            switchToText.addEventListener('click', switchToTextMode);
+            switchToAudio.addEventListener('click', switchToAudioMode);
+            
+            prevTextChapter.addEventListener('click', () => {
+                loadTextChapter(currentChapterIndex - 1);
+            });
+            
+            nextTextChapter.addEventListener('click', () => {
+                loadTextChapter(currentChapterIndex + 1);
+            });
+            
+            textChapterSelect.addEventListener('change', (e) => {
+                loadTextChapter(parseInt(e.target.value));
+            });
+            
+            backToLibraryFromText.addEventListener('click', () => {
+                textReaderContainer.classList.add('hidden');
+                bookSelector.classList.remove('hidden');
+            });
+            
+            downloadTextBook.addEventListener('click', () => {
+                // Placeholder for text download functionality
+                alert('Text download functionality will be implemented soon!');
+            });
+            
             // Online/offline status
             window.addEventListener('online', updateOfflineStatus);
             window.addEventListener('offline', updateOfflineStatus);
@@ -954,7 +1187,7 @@
             // Register service worker for PWA
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
+                    navigator.serviceWorker.register('/sw.js')
                         .then(registration => {
                             console.log('Service Worker registered:', registration);
                         })
