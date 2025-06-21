@@ -1,0 +1,26 @@
+{
+  "name": "digital-library-audiobook",
+  "version": "1.0.0",
+  "description": "Digital library for audiobooks and ebooks with offline support",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "generate-config": "node scripts/generate-book-config.js",
+    "serve": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "audiobook",
+    "ebook",
+    "offline",
+    "pwa",
+    "digital-library"
+  ],
+  "author": "Digital Library",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "."
+  }
+} 
