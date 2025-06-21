@@ -338,13 +338,13 @@
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
-                if (line.match(/^\*[^*]+\*$/)) { // Matches *Title* pattern
+                if (line.startsWith('## ЗАКОН')) { // Matches ## ЗАКОН pattern
                     if (!isFirstChapter) {
                         chaptersData.push(currentChapter);
                     }
                     isFirstChapter = false;
                     currentChapter = {
-                        title: line.slice(1, -1), // Remove * from start and end
+                        title: line.replace(/^## /, ''), // Remove ## prefix
                         content: []
                     };
                 } else if (!isFirstChapter) {
