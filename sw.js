@@ -1,9 +1,9 @@
 const CACHE_NAME = 'digital-library-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/books/config.json',
+  './',
+  './index.html',
+  './manifest.json',
+  './books/config.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
