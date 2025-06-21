@@ -1,7 +1,7 @@
 {
-  "name": "Стіна Промовляє",
-  "short_name": "Стіна",
-  "description": "Стіна Промовляє",
+  "name": "Аудіо книжки",
+  "short_name": "Аудіо",
+  "description": "Аудіо книжки",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f5f5f5",
